@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>مقارن الأسعار 🛍️</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background: #f5f5f5;
+      color: #222;
+      direction: rtl;
+    }
+
+    header {
+      background: #1a1a2e;
+      color: white;
+      padding: 1.5rem 2rem;
+      text-align: center;
+    }
+
+    header h1 { font-size: 1.8rem; margin-bottom: 0.3rem; }
+    header p { color: #aaa; font-size: 0.95rem; }
+
+    .search-box {
+      max-width: 600px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      display: flex;
+      gap: 10px;
+    }
+
+    .search-box input {
+      flex: 1;
+      padding: 12px 18px;
+      border: 2px solid #ddd;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-family: inherit;
+      outline: none;
+      transition: border 0.2s;
+    }
+
+    .search-box input:focus { border-color: #1a1a2e; }
+
+    .search-box button {
+      padding: 12px 24px;
+      background: #1a1a2e;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .search-box button:hover { background: #16213e; }
+
+    .suggestions {
+      max-width: 600px;
+      margin: 0 auto 1.5rem;
+      padding: 0 1rem;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .suggestion {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .suggestion:hover { background: #1a1a2e; color: white; border-color: #1a1a2e; }
+
+    #status {
+      text-align: center;
+      padding: 1rem;
+      color: #666;
+      font-size: 0.95rem;
+    }
+
+    .results {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 1rem 2rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    }
+
+    .card.cheapest { border: 2px solid #22c55e; }
+
+    .best-badge {
+      background: #22c55e;
+      color: white;
+      font-size: 0.75rem;
+      font-weight: bold;
+      padding: 4px 10px;
+      text-align: center;
+    }
+
+    .card-img {
+      width: 100%;
+      height: 160px;
+      object-fit: contain;
+      background: #f9f9f9;
+      padding: 10px;
+    }
+
+    .card-img-placeholder {
+      width: 100%;
+      height: 160px;
+      background: #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+    }
+
+    .card-body { padding: 1rem; }
+
+    .store-badge {
+      display: inline-block;
+      background: #fff3e0;
+      color: #e65100;
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 20px;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+
+    .card-title {
+      font-size: 0.88rem;
+      color: #333;
+      line-height: 1.5;
+      margin-bottom: 0.75rem;
+      height: 2.7rem;
+      overflow: hidden;
+    }
+
+    .card-price {
+      font-size: 1.4rem;
+      font-weight: bold;
+      color: #1a1a2e;
+      margin-bottom: 0.75rem;
+    }
+
+    .card-price span {
+      font-size: 0.85rem;
+      color: #888;
+      font-weight: normal;
+    }
+
+    .card-rating {
+      font-size: 0.8rem;
+      color: #888;
+      margin-bottom: 0.75rem;
+    }
+
+    .card-rating .stars { color: #f59e0b; }
+
+    .buy-btn {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      background: #ff9900;
+      color: white;
+      text-align: center;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.9rem;
+      transition: background 0.2s;
+    }
+
+    .buy-btn:hover { background: #e68900; }
+
+    .loading {
+      text-align: center;
+      padding: 3rem;
+      color: #666;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid #eee;
+      border-top-color: #1a1a2e;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 1rem;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .saving-box {
+      max-width: 900px;
+      margin: 0 auto 1rem;
+      padding: 0 1rem;
+    }
+
+    .saving-alert {
+      background: #f0fdf4;
+      border: 1px solid #86efac;
+      border-radius: 10px;
+      padding: 0.75rem 1.25rem;
+      color: #166534;
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🛍️ مقارن الأسعار</h1>
+  <p>ابحث عن أي منتج واحصل على أفضل سعر من أمازون السعودية</p>
+</header>
+
+<div class="search-box">
+  <input type="text" id="searchInput" placeholder="ابحث عن منتج... مثلاً: iPhone 15" onkeydown="if(event.key==='Enter') doSearch()">
+  <button onclick="doSearch()">🔍 بحث</button>
+</div>
+
+<div class="suggestions">
+  <div class="suggestion" onclick="searchFor('iPhone 15')">iPhone 15</div>
+  <div class="suggestion" onclick="searchFor('Samsung Galaxy S24')">Samsung S24</div>
+  <div class="suggestion" onclick="searchFor('AirPods Pro')">AirPods Pro</div>
+  <div class="suggestion" onclick="searchFor('iPad')">iPad</div>
+  <div class="suggestion" onclick="searchFor('شاشة سامسونج')">شاشة سامسونج</div>
+</div>
+
+<div id="status"></div>
+<div class="saving-box" id="savingBox"></div>
+<div class="results" id="results"></div>
+
+<script>
+  function searchFor(term) {
+    document.getElementById('searchInput').value = term;
+    doSearch();
+  }
+
+  async function doSearch() {
+    const q = document.getElementById('searchInput').value.trim();
+    if (!q) return;
+
+    document.getElementById('status').innerHTML = `
+      <div class="loading">
+        <div class="spinner"></div>
+        <p>جاري البحث عن "${q}"...</p>
+      </div>`;
+    document.getElementById('results').innerHTML = '';
+    document.getElementById('savingBox').innerHTML = '';
+
+    try {
+      const res = await fetch(`/search?q=${encodeURIComponent(q)}`);
+      const data = await res.json();
+
+      if (data.error) {
+        document.getElementById('status').innerHTML = `<p style="color:red">${data.error}</p>`;
+        return;
+      }
+
+      if (!data.results || data.results.length === 0) {
+        document.getElementById('status').innerHTML = '<p>لا توجد نتائج، جرّب كلمة أخرى</p>';
+        return;
+      }
+
+      document.getElementById('status').innerHTML =
+        `<p>وجدنا <strong>${data.count}</strong> نتيجة لـ "${data.query}"</p>`;
+
+      // حساب التوفير
+      const prices = data.results.map(r => r.price);
+      const min = Math.min(...prices);
+      const max = Math.max(...prices);
+      const saving = max - min;
+      if (saving > 0) {
+        document.getElementById('savingBox').innerHTML = `
+          <div class="saving-alert">
+            💰 يمكنك توفير حتى <strong>${saving.toLocaleString('ar-SA')} ريال</strong> باختيار أفضل سعر
+          </div>`;
+      }
+
+      // عرض البطاقات
+      document.getElementById('results').innerHTML = data.results.map((item, i) => `
+        <div class="card ${i === 0 ? 'cheapest' : ''}">
+          ${i === 0 ? '<div class="best-badge">🏆 أفضل سعر</div>' : ''}
+          ${item.image
+            ? `<img class="card-img" src="${item.image}" alt="${item.title}" onerror="this.style.display='none'">`
+            : `<div class="card-img-placeholder">📱</div>`}
+          <div class="card-body">
+            <div class="store-badge">${item.store}</div>
+            <div class="card-title">${item.title}</div>
+            <div class="card-price">
+              ${item.price.toLocaleString('ar-SA')} <span>ريال</span>
+            </div>
+            ${item.rating ? `
+              <div class="card-rating">
+                <span class="stars">${'★'.repeat(Math.round(item.rating))}${'☆'.repeat(5-Math.round(item.rating))}</span>
+                (${item.ratings_total.toLocaleString()})
+              </div>` : ''}
+            <a href="${item.url}" target="_blank" class="buy-btn">اشتري الآن ←</a>
+          </div>
+        </div>
+      `).join('');
+
+    } catch(e) {
+      document.getElementById('status').innerHTML = '<p style="color:red">حدث خطأ، حاول مرة أخرى</p>';
+    }
+  }
+</script>
+
+</body>
+</html>
